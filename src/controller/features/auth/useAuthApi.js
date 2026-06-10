@@ -7,9 +7,9 @@ export function useAuthApi() {
   const login = (credentials) =>
     run(() => apiClient.post("/auth/login", credentials));
 
-  // si necesitás registro:
+  //registro:
   const register = (payload) =>
-    run(() => apiClient.post("/api/users/register", payload));
+    run(() => apiClient.post("/auth/register", payload));
 
   return { login, register, loading, error };
 }

@@ -14,7 +14,7 @@ const PrivateLayout = () => {
       {/* Sidebar */}
       <aside className="w-64 border-r bg-white p-4 flex flex-col">
         <div className="mb-6">
-          <div className="text-xl font-bold">Mi Cuentas</div>
+          <div className="text-xl font-bold">Mis Resultados</div>
           <div className="text-xs text-gray-500">Panel</div>
         </div>
 
@@ -24,6 +24,7 @@ const PrivateLayout = () => {
           </NavLink>
           
            <NavLink to="/perfil" className={linkClass}>Perfil</NavLink> 
+           <NavLink to="/insuranceMaster" className={linkClass}>Insurance Master</NavLink> 
         </nav>
 
         <button
