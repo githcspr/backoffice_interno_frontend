@@ -29,11 +29,18 @@ export function useInsuranceMasterApi() {
     [run, token]
   );
 
+  const updateBillingConfig = useCallback(
+    (insuranceCompanyId, payload) =>
+      run(() => apiClient.put(`/api/insurance-master/billing-configs/${insuranceCompanyId}`, payload, { token })),
+    [run, token]
+  );
+
   return {
     getAll,
     getById,
     getAllWithConfigs,
     createBillingConfig,
+    updateBillingConfig,
     loading,
     error
   };

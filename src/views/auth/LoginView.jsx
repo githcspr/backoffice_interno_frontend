@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuthApi } from "../../controller/features/auth/useAuthApi";
 import { useAuth } from "../../controller/features/auth/AuthContext";
 import { showApiError } from "../../utils/showApiError";
+import logoSail from "../../assets/logo_sail.png"
 
 export default function LoginView() {
   const { login, loading, error } = useAuthApi();
@@ -31,6 +32,7 @@ export default function LoginView() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
+        <img src={logoSail} alt="" />
         <h1 className="text-xl font-semibold mb-4 text-center">Login</h1>
 
         <form onSubmit={onSubmit} className="space-y-4">

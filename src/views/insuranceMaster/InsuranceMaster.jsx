@@ -2,14 +2,30 @@ import { useEffect, useState } from "react";
 import { useInsuranceMasterApi } from "../../controller/features/insuranceMaster/useInsuranceMasterApi";
 import { showApiError } from "../../utils/showApiError";
 
+const usdFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
+function formatCurrency(value) {
+  if (value === null || value === undefined || value === "") return "";
+  return usdFormatter.format(Number(value));
+}
+
+function formatPercentage(value) {
+  if (value === null || value === undefined || value === "") return "";
+  return `${Number(value).toFixed(2)}%`;
+}
+
 const InsuranceMaster = () => {
-  const { getAll, getAllWithConfigs, createBillingConfig, loading, error } =
+  const { getAll, getAllWithConfigs, createBillingConfig, updateBillingConfig, loading, error } =
     useInsuranceMasterApi();
   const [insuranceRows, setInsuranceRows] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [configForm, setConfigForm] = useState({
     billingModel: "",
     cost: "",
+    aplicaTope: false,
     cap: "",
     percentage: "",
   });
@@ -38,10 +54,11 @@ const InsuranceMaster = () => {
   const openConfigForm = (row) => {
     setSelectedCompany(row);
     setConfigForm({
-      billingModel: "",
-      cost: "",
-      cap: "",
-      percentage: "",
+      billingModel: row.config?.billingModel ?? "",
+      cost: row.config?.cost ?? "",
+      aplicaTope: Boolean(row.config?.aplicaTope),
+      cap: row.config?.cap ?? "",
+      percentage: row.config?.percentage ?? "",
     });
   };
 
@@ -50,10 +67,11 @@ const InsuranceMaster = () => {
   };
 
   const onConfigFormChange = (event) => {
-    const { name, value } = event.target;
+    const { name, type, checked, value } = event.target;
     setConfigForm((current) => ({
       ...current,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "aplicaTope" && !checked ? { cap: "" } : {}),
     }));
   };
 
@@ -62,18 +80,23 @@ const InsuranceMaster = () => {
     if (!selectedCompany) return;
 
     try {
-      const createdConfig = await createBillingConfig({
+      const payload = {
         insuranceCompanyId: selectedCompany.insuranceCompanyId,
         billingModel: configForm.billingModel,
         cost: Number(configForm.cost),
-        cap: configForm.cap === "" ? null : Number(configForm.cap),
+        aplicaTope: configForm.aplicaTope,
+        cap: configForm.aplicaTope && configForm.cap !== "" ? Number(configForm.cap) : null,
         percentage: Number(configForm.percentage),
-      });
+      };
+
+      const savedConfig = selectedCompany.config
+        ? await updateBillingConfig(selectedCompany.insuranceCompanyId, payload)
+        : await createBillingConfig(payload);
 
       setInsuranceRows((currentRows) =>
         currentRows.map((row) =>
-          row.insuranceCompanyId === createdConfig.insuranceCompanyId
-            ? { ...row, config: createdConfig }
+          row.insuranceCompanyId === savedConfig.insuranceCompanyId
+            ? { ...row, config: savedConfig }
             : row
         )
       );
@@ -98,6 +121,7 @@ const InsuranceMaster = () => {
               <th className="px-3 py-2 font-semibold">Nombre</th>
               <th className="px-3 py-2 font-semibold">Modelo de Cobro</th>
               <th className="px-3 py-2 font-semibold">Costo</th>
+              <th className="px-3 py-2 font-semibold">Aplica Tope</th>
               <th className="px-3 py-2 font-semibold">Tope</th>
               <th className="px-3 py-2 font-semibold">Porcentaje</th>
               <th className="px-3 py-2 font-semibold">Acción</th>
@@ -111,21 +135,22 @@ const InsuranceMaster = () => {
                 {row.config ? (
                   <>
                     <td className="px-3 py-2">{row.config.billingModel}</td>
-                    <td className="px-3 py-2">{row.config.cost}</td>
-                    <td className="px-3 py-2">{row.config.cap ?? ""}</td>
-                    <td className="px-3 py-2">{row.config.percentage}</td>
+                    <td className="px-3 py-2">{formatCurrency(row.config.cost)}</td>
+                    <td className="px-3 py-2">{row.config.aplicaTope ? "Sí" : "No"}</td>
+                    <td className="px-3 py-2">
+                      {row.config.aplicaTope ? formatCurrency(row.config.cap) : "N/A"}
+                    </td>
+                    <td className="px-3 py-2">{formatPercentage(row.config.percentage)}</td>
                   </>
                 ) : (
-                  <td className="px-3 py-2 text-amber-700" colSpan={4}>
+                  <td className="px-3 py-2 text-amber-700" colSpan={5}>
                     Falta agregar el registro de configuración
                   </td>
                 )}
                 <td className="px-3 py-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (!row.config) openConfigForm(row);
-                    }}
+                    onClick={() => openConfigForm(row)}
                     className="rounded bg-black px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
                   >
                     {row.config ? "Editar" : "Configurar"}
@@ -135,7 +160,7 @@ const InsuranceMaster = () => {
             ))}
             {!loading && insuranceRows.length === 0 && !error && (
               <tr>
-                <td className="px-3 py-4 text-gray-500" colSpan={7}>
+                <td className="px-3 py-4 text-gray-500" colSpan={8}>
                   No hay registros.
                 </td>
               </tr>
@@ -148,7 +173,9 @@ const InsuranceMaster = () => {
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded bg-white p-5 shadow-lg">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold">Configurar seguro</h2>
+              <h2 className="text-lg font-semibold">
+                {selectedCompany.config ? "Editar configuración" : "Configurar seguro"}
+              </h2>
               <p className="text-sm text-gray-500">
                 {selectedCompany.insuranceCompanyId} - {selectedCompany.insuranceName}
               </p>
@@ -183,6 +210,17 @@ const InsuranceMaster = () => {
                 />
               </label>
 
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="aplicaTope"
+                  checked={configForm.aplicaTope}
+                  onChange={onConfigFormChange}
+                  className="h-4 w-4"
+                />
+                <span className="font-medium text-gray-700">Aplica tope</span>
+              </label>
+
               <label className="block text-sm">
                 <span className="mb-1 block font-medium text-gray-700">Tope</span>
                 <input
@@ -192,6 +230,8 @@ const InsuranceMaster = () => {
                   value={configForm.cap}
                   onChange={onConfigFormChange}
                   className="w-full rounded border px-3 py-2"
+                  disabled={!configForm.aplicaTope}
+                  required={configForm.aplicaTope}
                 />
               </label>
 
@@ -221,7 +261,7 @@ const InsuranceMaster = () => {
                   disabled={loading}
                   className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
                 >
-                  Guardar
+                  {selectedCompany.config ? "Actualizar" : "Guardar"}
                 </button>
               </div>
             </form>
