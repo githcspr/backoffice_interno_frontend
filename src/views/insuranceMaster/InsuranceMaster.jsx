@@ -12,11 +12,6 @@ function formatCurrency(value) {
   return usdFormatter.format(Number(value));
 }
 
-function formatPercentage(value) {
-  if (value === null || value === undefined || value === "") return "";
-  return `${Number(value).toFixed(2)}%`;
-}
-
 const InsuranceMaster = () => {
   const { getAll, getAllWithConfigs, createBillingConfig, updateBillingConfig, loading, error } =
     useInsuranceMasterApi();
@@ -27,7 +22,6 @@ const InsuranceMaster = () => {
     cost: "",
     aplicaTope: false,
     cap: "",
-    percentage: "",
   });
 
   useEffect(() => {
@@ -58,7 +52,6 @@ const InsuranceMaster = () => {
       cost: row.config?.cost ?? "",
       aplicaTope: Boolean(row.config?.aplicaTope),
       cap: row.config?.cap ?? "",
-      percentage: row.config?.percentage ?? "",
     });
   };
 
@@ -86,7 +79,6 @@ const InsuranceMaster = () => {
         cost: Number(configForm.cost),
         aplicaTope: configForm.aplicaTope,
         cap: configForm.aplicaTope && configForm.cap !== "" ? Number(configForm.cap) : null,
-        percentage: Number(configForm.percentage),
       };
 
       const savedConfig = selectedCompany.config
@@ -123,7 +115,6 @@ const InsuranceMaster = () => {
               <th className="px-3 py-2 font-semibold">Costo</th>
               <th className="px-3 py-2 font-semibold">Aplica Tope</th>
               <th className="px-3 py-2 font-semibold">Tope</th>
-              <th className="px-3 py-2 font-semibold">Porcentaje</th>
               <th className="px-3 py-2 font-semibold">Acción</th>
             </tr>
           </thead>
@@ -140,10 +131,9 @@ const InsuranceMaster = () => {
                     <td className="px-3 py-2">
                       {row.config.aplicaTope ? formatCurrency(row.config.cap) : "N/A"}
                     </td>
-                    <td className="px-3 py-2">{formatPercentage(row.config.percentage)}</td>
                   </>
                 ) : (
-                  <td className="px-3 py-2 text-amber-700" colSpan={5}>
+                  <td className="px-3 py-2 text-amber-700" colSpan={4}>
                     Falta agregar el registro de configuración
                   </td>
                 )}
@@ -160,7 +150,7 @@ const InsuranceMaster = () => {
             ))}
             {!loading && insuranceRows.length === 0 && !error && (
               <tr>
-                <td className="px-3 py-4 text-gray-500" colSpan={8}>
+                <td className="px-3 py-4 text-gray-500" colSpan={7}>
                   No hay registros.
                 </td>
               </tr>
@@ -232,19 +222,6 @@ const InsuranceMaster = () => {
                   className="w-full rounded border px-3 py-2"
                   disabled={!configForm.aplicaTope}
                   required={configForm.aplicaTope}
-                />
-              </label>
-
-              <label className="block text-sm">
-                <span className="mb-1 block font-medium text-gray-700">Porcentaje</span>
-                <input
-                  type="number"
-                  step="0.000001"
-                  name="percentage"
-                  value={configForm.percentage}
-                  onChange={onConfigFormChange}
-                  className="w-full rounded border px-3 py-2"
-                  required
                 />
               </label>
 
