@@ -6,6 +6,7 @@ import PrivateLayout from "../layouts/PrivateLayout";
 import { useAuth } from "../controller/features/auth/AuthContext";
 import Profile from "../views/user/Profile";
 import InsuranceMaster from "../views/insuranceMaster/InsuranceMaster";
+import ResultsMaster from "../views/resultsMaster/ResultsMaster";
 
 const RouterComponent = () => {
     const { isAuthenticated } = useAuth();
@@ -30,6 +31,7 @@ const RouterComponent = () => {
                 {/* acá van todas las privadas */}
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/insuranceMaster" element={<InsuranceMaster />} />
+                <Route path="/resultsMaster" element={<ResultsMaster />} />
             </Route>
 
             {/* Root */}

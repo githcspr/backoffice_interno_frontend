@@ -25,6 +25,7 @@ const PrivateLayout = () => {
           
            <NavLink to="/perfil" className={linkClass}>Perfil</NavLink> 
            <NavLink to="/insuranceMaster" className={linkClass}>Insurance Master</NavLink> 
+           <NavLink to="/resultsMaster" className={linkClass}>Results Master</NavLink>
         </nav>
 
         <button
